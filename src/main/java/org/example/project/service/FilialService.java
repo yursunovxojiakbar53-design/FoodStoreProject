@@ -6,9 +6,8 @@ import org.example.project.entity.Filial;
 import org.example.project.entity.Location;
 import org.example.project.extra.ApiResponse;
 import org.example.project.repository.FilialRepo;
-import org.springframework.http.HttpStatus;
+import org.example.project.exception.NotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class FilialService {
 
     public ApiResponse update(Integer id, FilialDto dto) {
         Filial filial = filialRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("Filial not found"));
 
         Location location = Location.builder()
                 .latitude(dto.getLatitude())
@@ -49,13 +48,14 @@ public class FilialService {
         filial.setWorkHours(dto.getWorkHours());
         filial.setPhoneNumber(dto.getPhoneNumber());
         filial.setLocation(location);
-n        filialRepo.save(filial);
+
+        filialRepo.save(filial);
         return new ApiResponse("Filial updated", true, filial);
     }
 
     public ApiResponse delete(Integer id) {
         Filial filial = filialRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException("Filial not found"));
 
         filialRepo.delete(filial);
         return new ApiResponse("Filial deleted", true, null);
@@ -66,6 +66,6 @@ public class FilialService {
     }
 
     public Filial getOne(Integer id) {
-        return filialRepo.findById(id).orElse(null);
+        return filialRepo.findById(id).orElseThrow(() -> new NotFoundException("Filial not found"));
     }
 }
