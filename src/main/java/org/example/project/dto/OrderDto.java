@@ -4,6 +4,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.Data;
 import org.example.project.enums.DeliverType;
+import org.example.project.enums.PaymentType;
 
 import java.util.List;
 
@@ -22,6 +23,8 @@ public class OrderDto {
     private DeliverType deliverType;
 
     private Integer filialId;
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 
 
 }

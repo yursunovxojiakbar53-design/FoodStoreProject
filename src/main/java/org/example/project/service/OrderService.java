@@ -41,6 +41,7 @@ public class OrderService {
         order.setMessage(dto.getMessage());
         order.setDeliverType(dto.getDeliverType());
         order.setOrderStatus(OrderStatus.NEW);
+        order.setPaymentType(dto.getPaymentType());
 
         // filial va address bog'lash (qisqartirilgan)
         // order.setFilial(...); order.setAddress(...);
