@@ -1,5 +1,6 @@
 package org.example.project.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.project.dto.OrderDto;
 import org.example.project.entity.Order;
@@ -16,7 +17,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ApiResponse createOrder(@RequestBody OrderDto dto) {
+    public ApiResponse createOrder(@RequestBody  @Valid OrderDto dto) {
         return orderService.createOrder(dto);
     }
 

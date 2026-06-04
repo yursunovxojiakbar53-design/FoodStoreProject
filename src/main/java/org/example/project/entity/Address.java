@@ -16,7 +16,9 @@ public class Address extends AbstractEntity {
     @ManyToOne
     @JoinColumn(name = "users_id")
     private Users user;
-    private String location;
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    private Location location;
     private String title;
     private Integer house;
     private Integer floor;

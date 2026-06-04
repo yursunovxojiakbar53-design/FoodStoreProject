@@ -3,6 +3,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.project.enums.DeliverType;
 import org.example.project.enums.OrderStatus;
+import org.example.project.enums.PaymentType;
 import org.example.project.extra.AbstractEntity;
 
 import java.util.List;
@@ -27,6 +28,10 @@ public class Order extends AbstractEntity {
     @ManyToOne
     @JoinColumn(name = "address_id")
     private Address address;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
+
 
     @Enumerated(EnumType.STRING)
     private DeliverType deliverType;
