@@ -9,9 +9,8 @@ import org.example.project.extra.ApiResponse;
 import org.example.project.repository.AttachmentRepository;
 import org.example.project.repository.CategoryRepo;
 import org.example.project.repository.ProductRepo;
-import org.springframework.http.HttpStatus;
+import org.example.project.exception.NotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -21,12 +20,16 @@ public class ProductService {
     private final CategoryRepo categoryRepo;
 
     public ApiResponse addProduct(ProductDto dto) {
-        Category category = categoryRepo.findById(dto.getCategoryId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Category category = categoryRepo.findById(dto.getCategoryId()).orElseThrow(() -> new NotFoundException("Category not found with id " + dto.getCategoryId()));
+        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Attachment not found with id " + dto.getAttachmentId()));
 
         Product product = Product.builder()
-                        .name(dto.getName())
-                        .description(dto.getDescription())
+                        .nameUz(dto.getNameUz())
+                        .nameRu(dto.getNameRu())
+                        .nameEng(dto.getNameEng())
+                        .descriptionUz(dto.getDescriptionUz())
+                        .descriptionRu(dto.getDescriptionRu())
+                        .descriptionEng(dto.getDescriptionEn())
                         .price(dto.getPrice())
                         .discountPrice(dto.getDiscountPrice())
                         .currentPrice(dto.getCurrentPrice())
@@ -34,18 +37,21 @@ public class ProductService {
                 .category(category)
                 .attachment(attachment)
                 .isAvailable(dto.isAvailable())
-
                         .build();
         productRepo.save(product);
         return new ApiResponse("Added ",true,product);
     }
 
     public ApiResponse updateProduct(ProductDto dto, Integer id) {
-        Category category = categoryRepo.findById(dto.getCategoryId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        Product product = productRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
+        Category category = categoryRepo.findById(dto.getCategoryId()).orElseThrow(() -> new NotFoundException("Category not found with id " + dto.getCategoryId()));
+        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Attachment not found with id " + dto.getAttachmentId()));
+        Product product = productRepo.findById(id).orElseThrow(() -> new NotFoundException("Product not found with id " + id));
+        product.setNameUz(dto.getNameUz());
+        product.setNameRu(dto.getNameRu());
+        product.setNameEng(dto.getNameEng());
+        product.setDescriptionUz(dto.getDescriptionUz());
+        product.setDescriptionRu(dto.getDescriptionRu());
+        product.setDescriptionEng(dto.getDescriptionEn());
         product.setPrice(dto.getPrice());
         product.setAttachment(attachment);
         product.setCategory(category);
@@ -58,8 +64,9 @@ public class ProductService {
     }
 
     public ApiResponse deleteProduct(Integer id) {
-        Product product = productRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Product product = productRepo.findById(id).orElseThrow(() -> new NotFoundException("Product not found with id " + id));
         product.setAvailable(false);
+        productRepo.save(product);
         return new ApiResponse("Deleted ",true,product);
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductController {
     private final UsersRepo usersRepo;

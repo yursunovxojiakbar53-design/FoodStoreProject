@@ -18,6 +18,10 @@ public class Category extends AbstractEntity {
     private String nameRu;
     private String nameEng;
 
+    private String descriptionUz;
+    private String descriptionRu;
+    private String descriptionEn;
+
     @Column(nullable = false)
     private Integer orderId;
 

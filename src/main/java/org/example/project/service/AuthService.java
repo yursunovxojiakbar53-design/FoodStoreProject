@@ -12,12 +12,10 @@ import org.example.project.extra.ApiResponse;
 import org.example.project.repository.UserRoleRepo;
 import org.example.project.repository.UsersRepo;
 import org.example.project.security.JwtService;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -41,7 +39,7 @@ public class AuthService {
                 .email(users.getEmail())
                 .password(passwordEncoder.encode(users.getPassword()))
                 .name(users.getFirstName())
-                .enabled(true)
+                .enabled(false)
                 .emailCode(emailCode)
                 .role(userRoleRepo.findByRole(Role.ROLE_USER))
                 .build();

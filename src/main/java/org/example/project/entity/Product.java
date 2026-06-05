@@ -16,7 +16,9 @@ import java.util.Set;
 @Builder
 public class Product  extends AbstractEntity {
     @Column(nullable = false)
-    private String name;
+    private String nameUz;
+    private String nameRu;
+    private String nameEng;
 
     @ManyToOne
     @JoinColumn(name = "attachment_id")
@@ -36,7 +38,11 @@ public class Product  extends AbstractEntity {
 
     private double discountPrice;
 
-    private String description;
+    private String descriptionUz;
+    private String descriptionRu;
+    private String descriptionEng;
+
+
 
     @Column(nullable = false)
     private boolean isAvailable;

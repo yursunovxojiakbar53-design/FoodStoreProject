@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class OrderService {
     private final CartItemRepo cartItemRepo;
     private final EmailService emailService;
     private final FilialRepo filialRepo;
+    private final CouponRepo couponRepo;
 
     private Users getUser(Authentication auth) {
         return usersRepo.findByEmail(auth.getName()).orElseThrow(() -> new NotFoundException("Foydalanuvchi topilmadi"));
@@ -67,12 +69,13 @@ public class OrderService {
             if (dto.getFilialId() == null) {
                 return new ApiResponse("Olib ketish uchun filial tanlanishi shart", false, null);
             }
-             Filial filial = filialRepo.findById(dto.getFilialId()).orElseThrow(() -> new NotFoundException("Filial topilmadi"));
-             order.setFilial(filial);
+            Filial filial = filialRepo.findById(dto.getFilialId()).orElseThrow(() -> new NotFoundException("Filial topilmadi"));
+            order.setFilial(filial);
         }
 
         // 6. OrderItem lar va umumiy summani hisoblash
         double total = 0;
+        double finalTotal = 0;
         List<OrderItem> items = new ArrayList<>();
 
         for (OrderItemDto itemDto : dto.getItems()) {
@@ -93,7 +96,6 @@ public class OrderService {
 
             double lineTotal = unitPrice * itemDto.getQuantity();
             total += lineTotal;
-
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
@@ -102,15 +104,37 @@ public class OrderService {
             items.add(item);
         }
 
+        double discount = 0;
+
+        if (dto.getCouponCode() != null && !dto.getCouponCode().isBlank()) {
+
+            Coupon coupon = couponRepo.findByCode(dto.getCouponCode()).orElse(null);
+
+            if (coupon == null)
+                return new ApiResponse("Kupon topilmadi", false, null);
+            if (!coupon.isActive())
+                return new ApiResponse("Kupon faol emas", false, null);
+            if (coupon.getExpiresAt() != null && coupon.getExpiresAt().isBefore(LocalDateTime.now()))
+                return new ApiResponse("Kupon muddati tugagan", false, null);
+            if (total < coupon.getMinOrderAmount())
+                return new ApiResponse("Minimal summa: " + coupon.getMinOrderAmount(), false, null);
+
+            discount = total * coupon.getDiscountPercent() / 100.0;
+        }
+
+        finalTotal = total - discount;
+
+
         order.setOrderItems(items);
-        order.setTotalPrice(total);
+        order.setTotalPrice(finalTotal);
 
         orderRepo.save(order);
 
         // Cartni tozalash
         cartRepo.findByUsersId(user.getId()).ifPresent(cart -> {
             List<CartItem> cartItems = cartItemRepo.findByCartId(cart.getId());
-            cartItemRepo.deleteAll(cartItems);});
+            cartItemRepo.deleteAll(cartItems);
+        });
 
         // Email xabar yuborish
         emailService.sendOrderConfirmation(

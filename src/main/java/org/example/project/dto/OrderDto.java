@@ -31,5 +31,6 @@ public class OrderDto {
     @NotNull(message = "To'lov turi tanlanishi kerak")
     private PaymentType paymentType;
 
+    private String couponCode;
 
 }

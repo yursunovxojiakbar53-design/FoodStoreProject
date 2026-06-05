@@ -5,6 +5,7 @@ import org.example.project.dto.ReviewDto;
 import org.example.project.entity.Product;
 import org.example.project.entity.Review;
 import org.example.project.entity.Users;
+import org.example.project.exception.AlreadyExistException;
 import org.example.project.exception.NotFoundException;
 import org.example.project.extra.ApiResponse;
 import org.example.project.repository.ProductRepo;
@@ -29,6 +30,10 @@ public class ReviewService {
     public ApiResponse addReview(Authentication authentication, ReviewDto dto){
         Users user = getUser(authentication);
         Product product = productRepo.findById(dto.getProductId()).orElseThrow(() -> new NotFoundException("Product not found"));
+        if (reviewRepo.existsByUserAndProduct(user , product)) {
+            throw new AlreadyExistException("Siz allaqachon baho bergansiz");
+        }
+
         Review review = Review.builder().comment(dto.getComment()).star(dto.getStar()).product(product).user(user).build();
         reviewRepo.save(review);
         return ApiResponse.builder().message("Review added").status(true).data(review).build();

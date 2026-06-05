@@ -5,15 +5,14 @@ import org.example.project.dto.CategoryDto;
 import org.example.project.dto.CategoryReorderDto;
 import org.example.project.entity.Attachment;
 import org.example.project.entity.Category;
+import org.example.project.exception.NotFoundException;
 import org.example.project.extra.ApiResponse;
 import org.example.project.repository.AttachmentRepository;
 import org.example.project.repository.CategoryRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,10 +24,7 @@ public class CategoryService {
 
     public ApiResponse add(CategoryDto dto) {
 
-        Attachment attachment =
-                attachmentRepository.findById(dto.getAttachmentId())
-                        .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Not found attachment with id " + dto.getAttachmentId()));
 
         Integer maxOrder = categoryRepo.findMaxOrderId();
         Integer orderId = dto.getOrderId();
@@ -37,21 +33,21 @@ public class CategoryService {
             orderId = maxOrder + 1;
         }
 
-        if (orderId < 1) {
-            return new ApiResponse("Order id 1 dan kichik bo'lishi mumkin emas",
-                    false,
-                    null);
-        }
+        if (orderId < 1)
+            return new ApiResponse("Order id 1 dan kichik bo'lishi mumkin emas", false, null);
+
 
         if (orderId > maxOrder + 1) {
             orderId = maxOrder + 1;
         }
 
-
         Category category = Category.builder()
                 .nameUz(dto.getNameUz())
                 .nameRu(dto.getNameRu())
-                .nameEng(dto.getNameEn())
+                .nameEng(dto.getNameEng())
+                .descriptionUz(dto.getDescriptionUz())
+                .descriptionRu(dto.getDescriptionRu())
+                .descriptionEn(dto.getDescriptionEn())
                 .telegramSticker(dto.getTelegramSticker())
                 .telegramSticker(dto.getTelegramDescription())
                 .orderId(orderId)
@@ -66,21 +62,17 @@ public class CategoryService {
 
     public ApiResponse update(Integer id, CategoryDto dto) {
 
-        Category category =
-                categoryRepo.findById(id)
-                        .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Category category = categoryRepo.findById(id).orElseThrow(() ->
+                                new NotFoundException("Not found category with id " + id));
 
-        Attachment attachment =
-                attachmentRepository.findById(dto.getAttachmentId())
-                        .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        
+        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Not found attachment"));
 
         category.setNameUz(dto.getNameUz());
         category.setNameRu(dto.getNameRu());
-        category.setNameEng(dto.getNameEn());
+        category.setNameEng(dto.getNameEng());
+        category.setDescriptionUz(dto.getDescriptionUz());
+        category.setDescriptionRu(dto.getDescriptionRu());
+        category.setDescriptionEn(dto.getDescriptionEn());
         category.setTelegramSticker(dto.getTelegramSticker());
         category.setStatus(dto.isActive());
         category.setAttachment(attachment);
@@ -92,10 +84,9 @@ public class CategoryService {
 
     public ApiResponse delete(Integer id) {
 
-        Category category =
-                categoryRepo.findById(id)
+        Category category = categoryRepo.findById(id)
                         .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND));
+                                        new NotFoundException("Category not found with id " + id));
 
         Integer deletedOrder = category.getOrderId();
 
@@ -118,7 +109,7 @@ public class CategoryService {
         Category category =
                 categoryRepo.findById(dto.getCategoryId())
                         .orElseThrow(() ->
-                                new ResponseStatusException(HttpStatus.NOT_FOUND));
+                                        new NotFoundException("Category not found with id " + dto.getCategoryId()));
 
         category.setOrderId(dto.getNewOrderId());
 

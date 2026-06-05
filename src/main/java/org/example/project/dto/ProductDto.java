@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
 public class ProductDto {
 
     @NotBlank
-    private String name;
+    private String nameUz;
+    private String nameRu;
+    private String nameEng;
 
     private Integer attachmentId;
 
@@ -30,7 +32,9 @@ public class ProductDto {
     @NotNull
     private Integer categoryId;
 
-    private String description;
+    private String descriptionUz;
+    private String descriptionRu;
+    private String descriptionEn;
 
     @Builder.Default
     private boolean isAvailable = true;

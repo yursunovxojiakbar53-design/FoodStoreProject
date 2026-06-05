@@ -7,7 +7,11 @@ public class CategoryDto {
 
     private String nameUz;
     private String nameRu;
-    private String nameEn;
+    private String nameEng;
+
+    private String descriptionUz;
+    private String descriptionRu;
+    private String descriptionEn;
 
     private String telegramSticker;
 

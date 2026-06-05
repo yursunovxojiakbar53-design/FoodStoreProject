@@ -11,4 +11,12 @@ public interface CategoryRepo extends JpaRepository<Category,Integer> {
     Integer findMaxOrderId();
 
     List<Category> findByOrderIdGreaterThanOrderByOrderId(Integer deletedOrder);
+    @Query("""
+            select c
+            from Category c
+            where lower(c.nameUz) like lower(concat('%', :keyword, '%'))
+               or lower(c.nameRu) like lower(concat('%', :keyword, '%'))
+               or lower(c.nameEng) like lower(concat('%', :keyword, '%'))
+            """)
+    List<Category> search(String keyword);
 }
