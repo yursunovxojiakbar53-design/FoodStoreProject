@@ -36,6 +36,8 @@ public class ProductDto {
     private String descriptionRu;
     private String descriptionEn;
 
+    private Integer stockQuantity;
+
     @Builder.Default
     private boolean isAvailable = true;
 }

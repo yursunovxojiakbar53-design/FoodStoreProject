@@ -2,8 +2,11 @@ package org.example.project.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.project.dto.PaymentDto;
+import jakarta.validation.Valid;
 import org.example.project.extra.ApiResponse;
+import org.example.project.extra.Perms;
 import org.example.project.service.PaymentService;
+import org.example.project.valid.RequirePermission;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,15 +18,17 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
     private final PaymentService paymentService;
 
+    @RequirePermission(Perms.CREATE_ORDER)
     @PostMapping
-    public ResponseEntity<?> create(Authentication authentication, @RequestBody PaymentDto dto){
+    public ResponseEntity<?> create(Authentication authentication, @RequestBody @Valid PaymentDto dto){
         ApiResponse apiResponse = paymentService.createPayment(authentication, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
+    @RequirePermission(Perms.VIEW_OWN_PAYMENTS)
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<?> getByOrder(@PathVariable Integer orderId){
-        ApiResponse apiResponse = paymentService.getByOrder(orderId);
+    public ResponseEntity<?> getByOrder(@PathVariable Integer orderId, Authentication auth){
+        ApiResponse apiResponse = paymentService.getByOrder(orderId,auth);
         return ResponseEntity.ok(apiResponse);
     }
 }

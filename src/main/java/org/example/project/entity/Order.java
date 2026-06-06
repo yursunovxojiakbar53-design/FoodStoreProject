@@ -16,8 +16,9 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "orders")
 public class Order extends AbstractEntity {
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Users user;
 
@@ -25,7 +26,7 @@ public class Order extends AbstractEntity {
 
     private String message;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "address_id")
     private Address address;
 
@@ -44,7 +45,7 @@ public class Order extends AbstractEntity {
 
     private double totalPrice;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "filial_id")
     private Filial filial;
 }

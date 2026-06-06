@@ -1,17 +1,16 @@
 package org.example.project.entity;
 
-import jakarta.persistence.Entity;
+import jakarta.persistence.Embeddable;
 import lombok.*;
-import org.example.project.extra.AbstractEntity;
 
-@EqualsAndHashCode(callSuper = true)
-@Entity
+@EqualsAndHashCode
+@Embeddable
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Location extends AbstractEntity {
+public class Location {
     private double longitude;
     private double latitude;
 }

@@ -20,7 +20,7 @@ public class Product  extends AbstractEntity {
     private String nameRu;
     private String nameEng;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "attachment_id")
     private Attachment attachment;
 
@@ -32,7 +32,7 @@ public class Product  extends AbstractEntity {
     @Column(nullable = false)
     private double weight;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -48,4 +48,13 @@ public class Product  extends AbstractEntity {
     private boolean isAvailable;
 
     private Integer orderCount;
+
+    private Integer stockQuantity=0;
+
+    @Version
+    private Long version;
+
+    public String getName() {
+        return this.nameUz;
+    }
 }

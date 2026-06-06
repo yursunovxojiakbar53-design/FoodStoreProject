@@ -2,11 +2,14 @@ package org.example.project.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.project.dto.ProductDto;
+import jakarta.validation.Valid;
 import org.example.project.entity.Product;
 import org.example.project.extra.ApiResponse;
+import org.example.project.extra.Perms;
 import org.example.project.repository.ProductRepo;
 import org.example.project.repository.UsersRepo;
 import org.example.project.service.ProductService;
+import org.example.project.valid.RequirePermission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,28 +24,29 @@ public class ProductController {
     private final ProductRepo productRepo;
     private final ProductService productService;
 
+    @RequirePermission(Perms.VIEW_PRODUCTS)
     @GetMapping
-    public Page<Product> getAll(
-            @RequestParam(defaultValue = "0")  int page,  // bosmasa 0-sahifa
-            @RequestParam(defaultValue = "10") int size   // bosmasa 10 ta
-    ) {
+    public Page<Product> getAll(@RequestParam(defaultValue = "0")  int page, @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return productRepo.findAll(pageable);
     }
 
 
+    @RequirePermission(Perms.MANAGE_PRODUCTS)
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody ProductDto product) {
+    public ResponseEntity<?> save(@RequestBody @Valid ProductDto product) {
         ApiResponse apiResponse=productService.addProduct(product);
         return ResponseEntity.ok(apiResponse);
     }
 
+    @RequirePermission(Perms.MANAGE_PRODUCTS)
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id,@RequestBody ProductDto product) {
+    public ResponseEntity<?> update(@PathVariable Integer id,@RequestBody @Valid ProductDto product) {
         ApiResponse apiResponse=productService.updateProduct(product,id);
         return ResponseEntity.ok(apiResponse);
     }
 
+    @RequirePermission(Perms.MANAGE_PRODUCTS)
     @DeleteMapping("/{id}")
      public ResponseEntity<?> delete(@PathVariable Integer id) {
         ApiResponse apiResponse=productService.deleteProduct(id);

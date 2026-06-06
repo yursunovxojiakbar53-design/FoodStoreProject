@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WishlistRepo extends JpaRepository<Wishlist, Integer> {
-    List<Wishlist> findAllByUser(Users user);
-    Optional<Wishlist> findByUserAndProduct(Users user, Product product);
+    List<Wishlist> findAllByUsers(Users user);
+    Optional<Wishlist> findByUsersAndProduct(Users user, Product product);
 }
 

@@ -2,6 +2,7 @@ package org.example.project.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Embedded;
 import lombok.*;
 import org.example.project.extra.AbstractEntity;
 
@@ -13,11 +14,10 @@ import org.example.project.extra.AbstractEntity;
 @AllArgsConstructor
 @Builder
 public class Address extends AbstractEntity {
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "users_id")
     private Users user;
-    @ManyToOne
-    @JoinColumn(name = "location_id")
+    @Embedded
     private Location location;
     private String title;
     private Integer house;

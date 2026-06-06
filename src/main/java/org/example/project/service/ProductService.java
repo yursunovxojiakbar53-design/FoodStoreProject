@@ -33,6 +33,7 @@ public class ProductService {
                         .price(dto.getPrice())
                         .discountPrice(dto.getDiscountPrice())
                         .currentPrice(dto.getCurrentPrice())
+                        .stockQuantity(dto.getStockQuantity())
                         .weight(dto.getWeight())
                 .category(category)
                 .attachment(attachment)
@@ -57,6 +58,7 @@ public class ProductService {
         product.setCategory(category);
         product.setWeight(dto.getWeight());
         product.setCurrentPrice(dto.getCurrentPrice());
+        product.setStockQuantity(dto.getStockQuantity());
         product.setAvailable(dto.isAvailable());
         product.setDiscountPrice(dto.getDiscountPrice());
         productRepo.save(product);

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Set;
 
-public interface UserRoleRepo extends JpaRepository<UserRole, Long> {
+public interface UserRoleRepo extends JpaRepository<UserRole, Integer> {
     Set<UserRole> findByRole(Role role);
-
+    boolean existsByRole(Role role);
 }

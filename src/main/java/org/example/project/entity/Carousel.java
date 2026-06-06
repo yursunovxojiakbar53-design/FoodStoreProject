@@ -13,18 +13,17 @@ import org.example.project.extra.AbstractEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AboutAs extends AbstractEntity {
-
+public class Carousel extends AbstractEntity{
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String phoneNumber;
-
-    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "attachment_id")
-    private Attachment attachment;
+    private Attachment attachment;  // rasm
 
-    private String telegramBotUrl;
+    private Integer orderIndex;
+
+    private Boolean isActive;
 }

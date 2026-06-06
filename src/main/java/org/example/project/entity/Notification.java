@@ -16,9 +16,9 @@ public class Notification extends AbstractEntity{
 
     private String message;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private Users user;
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @JoinColumn(name = "users_id")
+    private Users users;
 
     private boolean isRead;
 }

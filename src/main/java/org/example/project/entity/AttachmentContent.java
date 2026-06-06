@@ -18,7 +18,7 @@ public class AttachmentContent extends AbstractEntity {
 
     private byte[] content;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "attachment_id")
     private Attachment attachment;
 

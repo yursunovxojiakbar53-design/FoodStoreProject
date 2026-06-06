@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.project.dto.AddToCartDto;
 import org.example.project.dto.UpdateCartItemDto;
 import org.example.project.extra.ApiResponse;
+import org.example.project.extra.Perms;
 import org.example.project.service.CartService;
+import org.example.project.valid.RequirePermission;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -14,7 +16,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/carts")
 @RequiredArgsConstructor
-@PreAuthorize("isAuthenticated()")
+@RequirePermission(Perms.MANAGE_OWN_CART)
+
 public class CartController {
     private final CartService cartService;
 

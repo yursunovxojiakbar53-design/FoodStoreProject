@@ -56,9 +56,5 @@ public class AboutAsService {
         return ApiResponse.builder().message("About retrieved").status(true).data(list).build();
     }
 
-    public ApiResponse get(Integer id){
-        AboutAs about = aboutAsRepo.findById(id).orElseThrow(() -> new NotFoundException("About not found"));
-        return ApiResponse.builder().message("About retrieved").status(true).data(about).build();
-    }
 }
 

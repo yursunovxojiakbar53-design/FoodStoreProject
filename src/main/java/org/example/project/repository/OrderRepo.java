@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface OrderRepo extends JpaRepository<Order,Integer> {
     List<Order> findByUserId(Integer id);
+
+    List<Order> findByPhoneNumber(String phoneNumber);
 }

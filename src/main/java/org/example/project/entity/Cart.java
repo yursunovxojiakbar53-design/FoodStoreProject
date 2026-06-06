@@ -14,7 +14,7 @@ import org.example.project.extra.AbstractEntity;
 @Builder
 public class Cart extends AbstractEntity {
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "users_id")
     private Users users;
 

@@ -13,12 +13,12 @@ import org.example.project.extra.AbstractEntity;
 @AllArgsConstructor
 @Builder
 public class OrderItem extends AbstractEntity {
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 

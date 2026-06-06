@@ -1,8 +1,7 @@
 package org.example.project.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Embedded;
 import lombok.*;
 import org.example.project.extra.AbstractEntity;
 
@@ -19,8 +18,7 @@ public class Filial extends AbstractEntity {
     private String description;
     private String workHours;
     private String phoneNumber;
-    @ManyToOne
-    @JoinColumn(name = "location_id")
+    @Embedded
     private Location location;
 
 }

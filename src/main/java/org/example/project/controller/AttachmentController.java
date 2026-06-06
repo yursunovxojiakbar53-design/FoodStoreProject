@@ -1,8 +1,11 @@
 package org.example.project.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.example.project.entity.Attachment;
+import org.example.project.extra.Perms;
 import org.example.project.service.AttachmentService;
+import org.example.project.valid.RequirePermission;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -19,35 +22,38 @@ import java.io.IOException;
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 public class AttachmentController {
-
     private final AttachmentService service;
 
 
-    @PostMapping("/upload")
+    @Operation(summary = "Fayl yuklash")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequirePermission(Perms.MANAGE_ATTACHMENTS)
     public ResponseEntity<Attachment> upload(@RequestParam("file") MultipartFile file) throws IOException {
         return ResponseEntity.ok(service.upload(file));
     }
 
+    @RequirePermission(Perms.MANAGE_ATTACHMENTS)
     @GetMapping("/download/{id}")
     public ResponseEntity<InputStreamResource> download(@PathVariable Integer id) throws IOException {
-
-        File file = service.getFile(id);
-
+        Attachment attachment = service.getAttachment(id);
+        File file = new File(attachment.getPath());
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + file.getName() + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        "attachment; filename=\"" + attachment.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(attachment.getContentType()))
                 .body(resource);
     }
+
+    @RequirePermission(Perms.MANAGE_ATTACHMENTS)
     @GetMapping("/view/{id}")
     public ResponseEntity<Resource> view(@PathVariable Integer id) throws IOException {
-
-        File file = service.getFile(id);
+        Attachment attachment = service.getAttachment(id);
+        File file = new File(attachment.getPath());
 
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
+                .contentType(org.springframework.http.MediaType.parseMediaType(attachment.getContentType()))
                 .body(new InputStreamResource(new FileInputStream(file)));
     }
 

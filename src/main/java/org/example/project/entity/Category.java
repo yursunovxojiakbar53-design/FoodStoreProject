@@ -25,7 +25,7 @@ public class Category extends AbstractEntity {
     @Column(nullable = false)
     private Integer orderId;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "attachment_id")
     private Attachment attachment;
 

@@ -18,11 +18,11 @@ public class Review extends AbstractEntity {
     private String comment;
     private int star;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 }

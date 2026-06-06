@@ -30,8 +30,8 @@ public class WishlistService {
     public ApiResponse addToWishlist(Authentication authentication, WishlistDto dto){
         Users user = getUser(authentication);
         Product product = productRepo.findById(dto.getProductId()).orElseThrow(() -> new NotFoundException("Product not found"));
-        if (wishlistRepo.findByUserAndProduct(user, product).isPresent()) throw new AlreadyExistException("Already in wishlist");
-        Wishlist wishlist = Wishlist.builder().user(user).product(product).build();
+        if (wishlistRepo.findByUsersAndProduct(user, product).isPresent()) throw new AlreadyExistException("Already in wishlist");
+        Wishlist wishlist = Wishlist.builder().users(user).product(product).build();
         wishlistRepo.save(wishlist);
         return ApiResponse.builder().message("Added to wishlist").status(true).data(wishlist).build();
     }
@@ -39,14 +39,14 @@ public class WishlistService {
     public ApiResponse removeFromWishlist(Authentication authentication, Integer id){
         Users user = getUser(authentication);
         Wishlist wishlist = wishlistRepo.findById(id).orElseThrow(() -> new NotFoundException("Wishlist item not found"));
-        if (!wishlist.getUser().getId().equals(user.getId())) throw new NotFoundException("Wishlist item not found for user");
+        if (!wishlist.getUsers().getId().equals(user.getId())) throw new NotFoundException("Wishlist item not found for user");
         wishlistRepo.delete(wishlist);
         return ApiResponse.builder().message("Removed from wishlist").status(true).build();
     }
 
     public ApiResponse getWishlist(Authentication authentication){
         Users user = getUser(authentication);
-        List<Wishlist> list = wishlistRepo.findAllByUser(user);
+        List<Wishlist> list = wishlistRepo.findAllByUsers(user);
         return ApiResponse.builder().message("Wishlist retrieved").status(true).data(list).build();
     }
 }

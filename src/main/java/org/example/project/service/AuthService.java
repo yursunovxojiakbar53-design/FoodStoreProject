@@ -69,6 +69,7 @@ public class AuthService {
         if (!Objects.equals(user.getEmailCode(), code)) return new ApiResponse("Wrong email code", false);
         user.setEnabled(true);
         user.setEmailCode(null);
+
         usersRepo.save(user);
         return new ApiResponse("Email tasdiqlandi! Endi login qiling.", true);
     }

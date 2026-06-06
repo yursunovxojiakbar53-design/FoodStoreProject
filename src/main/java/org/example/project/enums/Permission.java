@@ -11,6 +11,12 @@ public enum Permission implements GrantedAuthority {
     CREATE_ORDER,
     VIEW_OWN_ORDERS,
     CANCEL_OWN_ORDER,
+    MANAGE_OWN_REVIEW,
+    MANAGE_OWN_WISHLIST,
+    VIEW_OWN_NOTIFICATIONS,
+    MANAGE_COUPONS,
+    VIEW_OWN_PAYMENTS,
+    VIEW_ALL_CATEGORIES,
 
     // ORDER
     VIEW_ALL_ORDERS,
@@ -26,7 +32,7 @@ public enum Permission implements GrantedAuthority {
     MANAGE_BRANCHES,
 
     // SETTINGS
-    MANAGE_SETTINGS,
+//    MANAGE_SETTINGS,
 
     // CAROUSEL
     MANAGE_CAROUSEL,
@@ -38,10 +44,10 @@ public enum Permission implements GrantedAuthority {
     MANAGE_USERS,
 
     // REPORTS
-    VIEW_STATISTICS,
+//    VIEW_STATISTICS,
 
     // FILES
-    MANAGE_ATTACHMENTS;
+    MANAGE_ATTACHMENTS, CHANGE_ROLE;
 
     @Override
     public String getAuthority() {

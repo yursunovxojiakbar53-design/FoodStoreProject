@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.project.dto.OrderDto;
 import org.example.project.dto.OrderItemDto;
 import org.example.project.entity.*;
+import org.example.project.dto.OrderItemResponseDto;
+import org.example.project.dto.OrderResponseDto;
 import org.example.project.enums.DeliverType;
 import org.example.project.enums.OrderStatus;
 import org.example.project.exception.ForbiddenException;
@@ -83,19 +85,30 @@ public class OrderService {
             Product product = productRepo.findById(itemDto.getProductId()).orElseThrow(() -> new NotFoundException("Mahsulot topilmadi: ID = " + itemDto.getProductId()));
 
             if (!product.isAvailable()) {
-                return new ApiResponse("Mahsulot mavjud emas: " + product.getName(), false, null);
+                return new ApiResponse("Mahsulot mavjud emas: " + product.getNameUz(), false, null);
             }
 
             if (itemDto.getQuantity() == null || itemDto.getQuantity() <= 0) {
-                return new ApiResponse("Mahsulot miqdori noto'g'ri: " + product.getName(), false, null);
+                return new ApiResponse("Mahsulot miqdori noto'g'ri: " + product.getNameUz(), false, null);
             }
 
-            double unitPrice = product.getDiscountPrice() > 0
-                    ? product.getDiscountPrice()
-                    : product.getPrice();
+            // zaxira yetarliligini tekshirish
+            if (product.getStockQuantity() < itemDto.getQuantity()) {
+                return new ApiResponse("Zaxira yetarli emas: " + product.getNameUz() + " (mavjud: " + product.getStockQuantity() + ", so'ralgan: " + itemDto.getQuantity() + ")", false, null);
+            }
+
+            // zaxirani kamaytirish
+            product.setStockQuantity(product.getStockQuantity() - itemDto.getQuantity());
+            if (product.getStockQuantity() == 0) {
+                product.setAvailable(false);
+            }
+            productRepo.save(product);
+
+            double unitPrice = product.getDiscountPrice() > 0 ? product.getDiscountPrice() : product.getPrice();
 
             double lineTotal = unitPrice * itemDto.getQuantity();
             total += lineTotal;
+
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
@@ -103,7 +116,6 @@ public class OrderService {
             item.setPrice(unitPrice);
             items.add(item);
         }
-
         double discount = 0;
 
         if (dto.getCouponCode() != null && !dto.getCouponCode().isBlank()) {
@@ -140,10 +152,12 @@ public class OrderService {
         emailService.sendOrderConfirmation(
                 user.getUsername(),
                 order.getId(),
-                total
+                finalTotal
+
         );
 
-        return new ApiResponse("Buyurtma muvaffaqiyatli yaratildi", true, order);
+        OrderResponseDto responseDto = toDto(order);
+        return new ApiResponse("Buyurtma muvaffaqiyatli yaratildi", true, responseDto);
     }
 
     public Page<Order> getAll(int page, int size) {
@@ -154,7 +168,9 @@ public class OrderService {
     public ApiResponse getMyOrders(Authentication auth) {
         Users user = getUser(auth);
         List<Order> orders = orderRepo.findByUserId(user.getId());
-        return new ApiResponse("OK", true, orders);
+        List<OrderResponseDto> dtos = new ArrayList<>();
+        for (Order o : orders) dtos.add(toDto(o));
+        return new ApiResponse("OK", true, dtos);
     }
 
     public ApiResponse getOne(Integer id, Authentication auth) {
@@ -166,7 +182,8 @@ public class OrderService {
             throw new ForbiddenException("Bu buyurtma sizga tegishli emas");
         }
 
-        return new ApiResponse("OK", true, order);
+        OrderResponseDto dto = toDto(order);
+        return new ApiResponse("OK", true, dto);
     }
 
     public ApiResponse changeStatus(Integer id, OrderStatus status) {
@@ -182,9 +199,10 @@ public class OrderService {
                 status.name()
         );
 
-        return new ApiResponse("Status yangilandi: " + status, true, order);
+        OrderResponseDto dto = toDto(order);
+        return new ApiResponse("Status yangilandi: " + status, true, dto);
     }
-
+    @Transactional
     public ApiResponse cancelOrder(Integer id, Authentication auth) {
         Users user = getUser(auth);
 
@@ -194,21 +212,70 @@ public class OrderService {
             throw new ForbiddenException("Bu buyurtma sizga tegishli emas");
         }
 
-        // Faqat NEW yoki PENDING holatdagi buyurtmani bekor qilish mumkin
         if (order.getOrderStatus() != OrderStatus.NEW && order.getOrderStatus() != OrderStatus.PENDING) {
             return new ApiResponse("You can't cancel because order already: " + order.getOrderStatus(), false, null);
+        }
+
+        // ✅ YANGI: zaxirani qaytarish
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = item.getProduct();
+            product.setStockQuantity((int) (product.getStockQuantity() + item.getQuantity()));
+            if (product.getStockQuantity() > 0) {
+                product.setAvailable(true);
+            }
+            productRepo.save(product);
         }
 
         order.setOrderStatus(OrderStatus.CANCELED);
         orderRepo.save(order);
 
-        return new ApiResponse("Order canceled", true, order);
+        OrderResponseDto dto = toDto(order);
+        return new ApiResponse("Order canceled", true, dto);
     }
 
-    public ApiResponse delete(Integer id) {
-        Order order = orderRepo.findById(id).orElseThrow(() -> new NotFoundException("Buyurtma topilmadi: " + id));
+
+
+    public ApiResponse delete(Integer id, Authentication auth) {
+        Users user = getUser(auth);
+        Order order = orderRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Topilmadi"));
+
+        if (!order.getUser().getId().equals(user.getId()))
+            throw new ForbiddenException("Bu buyurtma sizga tegishli emas");
+
         orderRepo.delete(order);
-        return new ApiResponse("Deleted", true, null);
+        return new ApiResponse("O'chirildi", true, null);
+    }
+
+    // --- Mapping helpers ---
+    private OrderResponseDto toDto(Order order) {
+        if (order == null) return null;
+        List<OrderItemResponseDto> items = new ArrayList<>();
+        if (order.getOrderItems() != null) {
+            for (OrderItem it : order.getOrderItems()) {
+                OrderItemResponseDto itDto = OrderItemResponseDto.builder()
+                        .productId(it.getProduct() != null ? it.getProduct().getId() : null)
+                        .productName(it.getProduct() != null ? it.getProduct().getName() : null)
+                        .quantity(it.getQuantity())
+                        .price(it.getPrice())
+                        .build();
+                items.add(itDto);
+            }
+        }
+
+        return OrderResponseDto.builder()
+                .id(order.getId())
+                .phoneNumber(order.getPhoneNumber())
+                .message(order.getMessage())
+                .deliverType(order.getDeliverType())
+                .paymentType(order.getPaymentType())
+                .orderStatus(order.getOrderStatus())
+                .totalPrice(order.getTotalPrice())
+                .filialId(order.getFilial() != null ? order.getFilial().getId() : null)
+                .addressId(order.getAddress() != null ? order.getAddress().getId() : null)
+                .items(items)
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 
 

@@ -9,17 +9,23 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class JwtService {
 
-    private final String SECRET =
-            "mysecretkeymysecretkeymysecretkey12";
+    @Value("${jwt.secret:mysecretkeymysecretkeymysecretkey12}")
+    private String SECRET;
 
-    private final SecretKey key =
-            Keys.hmacShaKeyFor(SECRET.getBytes());
+    private SecretKey key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    }
 
     public String generateToken(Users users) {
         return Jwts.builder()
@@ -56,10 +62,10 @@ public class JwtService {
 
     // Takrorlanmaslik uchun alohida metod
     private Claims getClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
+        return Jwts.parser()                    // ← parserBuilder() emas
+                .verifyWith(key)                // ← setSigningKey() emas
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseSignedClaims(token)       // ← parseClaimsJws() emas
+                .getPayload();                  // ← getBody() emas
     }
 }
