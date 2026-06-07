@@ -3,7 +3,6 @@ package org.example.project.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.project.dto.WishlistDto;
 import jakarta.validation.Valid;
-import org.example.project.enums.Permission;
 import org.example.project.extra.ApiResponse;
 import org.example.project.extra.Perms;
 import org.example.project.service.WishlistService;

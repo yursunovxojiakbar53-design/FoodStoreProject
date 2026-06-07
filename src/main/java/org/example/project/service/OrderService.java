@@ -93,12 +93,13 @@ public class OrderService {
             }
 
             // zaxira yetarliligini tekshirish
-            if (product.getStockQuantity() < itemDto.getQuantity()) {
-                return new ApiResponse("Zaxira yetarli emas: " + product.getNameUz() + " (mavjud: " + product.getStockQuantity() + ", so'ralgan: " + itemDto.getQuantity() + ")", false, null);
+            int stock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+            if (stock < itemDto.getQuantity()) {
+                return new ApiResponse("Zaxira yetarli emas: " + product.getNameUz() + " (mavjud: " + stock + ", so'ralgan: " + itemDto.getQuantity() + ")", false, null);
             }
 
             // zaxirani kamaytirish
-            product.setStockQuantity(product.getStockQuantity() - itemDto.getQuantity());
+            product.setStockQuantity(stock - itemDto.getQuantity());
             if (product.getStockQuantity() == 0) {
                 product.setAvailable(false);
             }
@@ -219,7 +220,8 @@ public class OrderService {
         // ✅ YANGI: zaxirani qaytarish
         for (OrderItem item : order.getOrderItems()) {
             Product product = item.getProduct();
-            product.setStockQuantity((int) (product.getStockQuantity() + item.getQuantity()));
+            int currentStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+            product.setStockQuantity((int) (currentStock + item.getQuantity()));
             if (product.getStockQuantity() > 0) {
                 product.setAvailable(true);
             }

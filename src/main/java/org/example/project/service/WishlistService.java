@@ -13,6 +13,7 @@ import org.example.project.repository.UsersRepo;
 import org.example.project.repository.WishlistRepo;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class WishlistService {
         return ApiResponse.builder().message("Removed from wishlist").status(true).build();
     }
 
+    @Transactional(readOnly = true)
     public ApiResponse getWishlist(Authentication authentication){
         Users user = getUser(authentication);
         List<Wishlist> list = wishlistRepo.findAllByUsers(user);

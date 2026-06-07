@@ -5,8 +5,6 @@ import org.example.project.dto.LoginDto;
 import org.example.project.dto.RegisterDto;
 import jakarta.validation.Valid;
 import org.example.project.extra.ApiResponse;
-import org.example.project.extra.Perms;
-import org.example.project.valid.RequirePermission;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

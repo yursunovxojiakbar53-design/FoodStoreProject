@@ -33,11 +33,11 @@ public class ProductService {
                         .price(dto.getPrice())
                         .discountPrice(dto.getDiscountPrice())
                         .currentPrice(dto.getCurrentPrice())
-                        .stockQuantity(dto.getStockQuantity())
+                        .stockQuantity(dto.getStockQuantity() != null ? dto.getStockQuantity() : 0)
                         .weight(dto.getWeight())
-                .category(category)
-                .attachment(attachment)
-                .isAvailable(dto.isAvailable())
+                        .category(category)
+                        .attachment(attachment)
+                        .isAvailable(true)
                         .build();
         productRepo.save(product);
         return new ApiResponse("Added ",true,product);
@@ -58,7 +58,7 @@ public class ProductService {
         product.setCategory(category);
         product.setWeight(dto.getWeight());
         product.setCurrentPrice(dto.getCurrentPrice());
-        product.setStockQuantity(dto.getStockQuantity());
+        product.setStockQuantity(dto.getStockQuantity() != null ? dto.getStockQuantity() : 0);
         product.setAvailable(dto.isAvailable());
         product.setDiscountPrice(dto.getDiscountPrice());
         productRepo.save(product);
