@@ -1,0 +1,20 @@
+# Example application properties (do NOT commit real secrets)
+spring.application.name=FoodStore
+spring.datasource.url=jdbc:postgresql://localhost:5432/foodstore
+# Replace these with your local DB credentials or set environment variables DB_USERNAME and DB_PASSWORD
+spring.datasource.username=postgres
+spring.datasource.password=changeme
+spring.jpa.hibernate.ddl-auto=update
+
+# Email (Gmail example)
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+# Use your email here for testing (or set MAIL_USERNAME and MAIL_PASSWORD as env vars)
+spring.mail.username=your-email@example.com
+spring.mail.password=your-app-password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Instructions:
+# 1) Copy this file to src/main/resources/application.properties and fill values for local development.
+# 2) For production, prefer setting DB_PASSWORD and MAIL_PASSWORD via environment variables and keep application.properties out of version control.
