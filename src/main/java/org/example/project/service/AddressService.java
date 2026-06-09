@@ -39,8 +39,8 @@ public class AddressService {
                 .apartment(dto.getApartment())
                 .build();
 
-        addressRepo.save(address);
-        return ApiResponse.builder().message("Address added successfully").status(true).build();
+        Address saved = addressRepo.save(address);
+        return ApiResponse.builder().message("Address added successfully").status(true).data(saved).build();
     }
 
     public ApiResponse updateAddress(Authentication authentication, Integer addressId, AddressDto dto) {

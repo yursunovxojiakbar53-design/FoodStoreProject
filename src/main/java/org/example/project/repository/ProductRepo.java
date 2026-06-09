@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface ProductRepo extends JpaRepository<Product, Integer> {
     @Query("""
             select p
@@ -15,4 +17,7 @@ public interface ProductRepo extends JpaRepository<Product, Integer> {
                or lower(p.nameEng) like lower(concat('%', :keyword, '%'))
             """)
     Page<Product> search(String keyword, Pageable pageable);
+
+    List<Product> findByCategoryIdAndIsAvailableTrue(Integer categoryId);
+    Page<Product> findByIsAvailableTrue(Pageable pageable);
 }

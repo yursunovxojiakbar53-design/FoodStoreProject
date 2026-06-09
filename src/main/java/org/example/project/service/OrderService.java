@@ -92,18 +92,18 @@ public class OrderService {
                 return new ApiResponse("Mahsulot miqdori noto'g'ri: " + product.getNameUz(), false, null);
             }
 
-            // zaxira yetarliligini tekshirish
-            int stock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
-            if (stock < itemDto.getQuantity()) {
-                return new ApiResponse("Zaxira yetarli emas: " + product.getNameUz() + " (mavjud: " + stock + ", so'ralgan: " + itemDto.getQuantity() + ")", false, null);
+            // stock tracking faqat stockQuantity aniq belgilangan mahsulotlar uchun
+            if (product.getStockQuantity() != null) {
+                int stock = product.getStockQuantity();
+                if (stock < itemDto.getQuantity()) {
+                    return new ApiResponse("Zaxira yetarli emas: " + product.getNameUz() + " (mavjud: " + stock + ", so'ralgan: " + itemDto.getQuantity() + ")", false, null);
+                }
+                product.setStockQuantity(stock - itemDto.getQuantity());
+                if (product.getStockQuantity() == 0) {
+                    product.setAvailable(false);
+                }
+                productRepo.save(product);
             }
-
-            // zaxirani kamaytirish
-            product.setStockQuantity(stock - itemDto.getQuantity());
-            if (product.getStockQuantity() == 0) {
-                product.setAvailable(false);
-            }
-            productRepo.save(product);
 
             double unitPrice = product.getDiscountPrice() > 0 ? product.getDiscountPrice() : product.getPrice();
 

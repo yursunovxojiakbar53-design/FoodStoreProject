@@ -10,7 +10,11 @@ import org.example.project.repository.AttachmentRepository;
 import org.example.project.repository.CategoryRepo;
 import org.example.project.repository.ProductRepo;
 import org.example.project.exception.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -70,5 +74,23 @@ public class ProductService {
         product.setAvailable(false);
         productRepo.save(product);
         return new ApiResponse("Deleted ",true,product);
+    }
+
+    // ProductService ga qo'shing:
+
+    public ApiResponse getAll(Integer categoryId, int page, int size) {
+        if (categoryId != null) {
+            List<Product> products = productRepo.findByCategoryIdAndIsAvailableTrue(categoryId);
+            return new ApiResponse("OK", true, products);
+        }
+        Page<Product> products = productRepo.findByIsAvailableTrue(PageRequest.of(page, size));
+        return new ApiResponse("OK", true, products);
+    }
+
+
+    public ApiResponse getOne(Integer id) {
+        Product product = productRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Mahsulot topilmadi: " + id));
+        return new ApiResponse("OK", true, product);
     }
 }

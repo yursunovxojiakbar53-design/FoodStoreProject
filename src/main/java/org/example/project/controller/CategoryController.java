@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 @RequirePermission(Perms.MANAGE_CATEGORIES)
 public class CategoryController {
@@ -49,5 +49,9 @@ public class CategoryController {
     @GetMapping("/{id}")
     public Category getOne(@PathVariable Integer id) {
         return categoryService.getOne(id);
+    }
+    @GetMapping("/open")
+    public ApiResponse getAllOpen() {
+        return categoryService.getAllOpen();
     }
 }

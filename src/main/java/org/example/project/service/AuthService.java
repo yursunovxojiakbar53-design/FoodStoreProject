@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -33,8 +34,7 @@ public class AuthService {
         if (usersRepo.existsByEmail(users.getEmail())) throw  new AlreadyExistException("Already exist");
 
         if (!users.getPassword().equals(users.getPrePassword())) return new ApiResponse("Wrong password", false);
-        String emailCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-
+        int emailCode = 100000 + new Random().nextInt(900000);
         Users user = Users.builder()
                 .email(users.getEmail())
                 .password(passwordEncoder.encode(users.getPassword()))
@@ -46,7 +46,6 @@ public class AuthService {
         usersRepo.save(user);
         emailService.sendVerificationEmail(users.getEmail(), emailCode);
         return new ApiResponse("User registered successfully", true);
-
     }
 
     public ApiResponse login(LoginDto loginDto) {
@@ -63,10 +62,13 @@ public class AuthService {
 
     }
 
-    public ApiResponse verifyEmail(String email, String code) {
+    public ApiResponse verifyEmail(String email, Integer code) {
         Users user = usersRepo.findByEmail(email).orElse(null);
         if (user == null) return new ApiResponse("Not found", false);
-        if (!Objects.equals(user.getEmailCode(), code)) return new ApiResponse("Wrong email code", false);
+        if (!code.equals(user.getEmailCode())) {
+            return new ApiResponse("Wrong email code", false);
+        }
+
         user.setEnabled(true);
         user.setEmailCode(null);
 
@@ -74,7 +76,7 @@ public class AuthService {
         return new ApiResponse("Email tasdiqlandi! Endi login qiling.", true);
     }
 
-    public ApiResponse verify(String email, String code) {
+    public ApiResponse verify(String email, Integer code) {
         return verifyEmail(email, code);
     }
 }
