@@ -135,4 +135,8 @@ public class CategoryService {
     public Category getOne(Integer id) {
         return categoryRepo.findById(id).orElse(null);
     }
+    public ApiResponse getAllOpen() {
+        List<Category> categories = categoryRepo.findAll();
+        return new ApiResponse("OK", true, categories);
+    }
 }

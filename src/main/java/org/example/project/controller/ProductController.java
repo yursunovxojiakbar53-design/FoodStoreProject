@@ -52,4 +52,7 @@ public class ProductController {
         ApiResponse apiResponse=productService.deleteProduct(id);
         return ResponseEntity.ok(apiResponse);
     }
+
+
+
 }

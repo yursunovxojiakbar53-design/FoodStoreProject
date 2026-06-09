@@ -46,7 +46,6 @@ public class AttachmentController {
                 .body(resource);
     }
 
-    @RequirePermission(Perms.MANAGE_ATTACHMENTS)
     @GetMapping("/view/{id}")
     public ResponseEntity<Resource> view(@PathVariable Integer id) throws IOException {
         Attachment attachment = service.getAttachment(id);
