@@ -42,7 +42,7 @@ public class Users extends AbstractEntity implements UserDetails {
     private Set<UserRole> role = new HashSet<>();
 
 
-    private String emailCode;
+    private Integer emailCode;
 
 
     private LocalDateTime birthday;

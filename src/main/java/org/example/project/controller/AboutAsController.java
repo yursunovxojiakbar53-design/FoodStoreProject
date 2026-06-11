@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/about")
+@RequestMapping("/api/v1/open/about")
 @RequiredArgsConstructor
 public class AboutAsController {
     private final AboutAsService aboutAsService;

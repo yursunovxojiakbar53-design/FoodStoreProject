@@ -27,7 +27,7 @@ public class AuthController {
     }
 
     @PutMapping("/verify")
-    public ResponseEntity<?> verify(@RequestParam String email, @RequestParam String code) {
+    public ResponseEntity<?> verify(@RequestParam String email, @RequestParam Integer code) {
         ApiResponse response = authService.verify(email, code);
         return ResponseEntity.status(response.isStatus() ? 200 : 409).body(response);
     }
