@@ -60,6 +60,7 @@ public class AuthService {
 
     }
 
+
     public ApiResponse verifyEmail(String email, Integer code) {
         Users user = usersRepo.findByEmail(email).orElse(null);
         if (user == null) return new ApiResponse("Not found", false);
