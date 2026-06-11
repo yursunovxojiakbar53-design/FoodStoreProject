@@ -3,6 +3,7 @@ package org.example.project.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.project.entity.Users;
 import org.example.project.enums.Role;
+import org.example.project.exception.NotFoundException;
 import org.example.project.extra.ApiResponse;
 import org.example.project.extra.Perms;
 import org.example.project.repository.UsersRepo;
@@ -47,15 +48,10 @@ public class AdminUserController {
      */
     @RequirePermission(Perms.MANAGE_USERS)
     @GetMapping("/search")
-    public ResponseEntity<?> searchUsers(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> searchUsers(@RequestParam String query, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<Users> users = usersRepo.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                query, query, pageable);
-        
+        Page<Users> users = usersRepo.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query, pageable);
         return ResponseEntity.ok(new ApiResponse("Search results", true, users));
     }
 
@@ -66,8 +62,7 @@ public class AdminUserController {
     @RequirePermission(Perms.MANAGE_USERS)
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserDetails(@PathVariable Integer id) {
-        Users user = usersRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        Users user = usersRepo.findById(id).orElseThrow(() -> new NotFoundException("User not found with id: " + id));
         
         return ResponseEntity.ok(new ApiResponse("User details retrieved", true, user));
     }
@@ -78,15 +73,11 @@ public class AdminUserController {
      */
     @RequirePermission(Perms.MANAGE_USERS)
     @PutMapping("/{id}/block")
-    public ResponseEntity<?> blockUser(
-            @PathVariable Integer id,
-            @RequestParam Boolean blocked) {
+    public ResponseEntity<?> blockUser(@PathVariable Integer id, @RequestParam Boolean blocked) {
         
-        Users user = usersRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        Users user = usersRepo.findById(id).orElseThrow(() -> new NotFoundException("User not found with id: " + id));
         
-        // Check if user has field for blocked status (may need to add)
-        // For now, we disable the user if blocking
+
         if (blocked) {
             user.setEnabled(false);
         } else {
@@ -124,8 +115,7 @@ public class AdminUserController {
     @RequirePermission(Perms.MANAGE_USERS)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
-        Users user = usersRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        Users user = usersRepo.findById(id).orElseThrow(() -> new NotFoundException("User not found with id: " + id));
         
         usersRepo.deleteById(id);
         
@@ -144,7 +134,7 @@ public class AdminUserController {
         long unverifiedUsers = totalUsers - verifiedUsers;
         
         return ResponseEntity.ok(new ApiResponse("User statistics", true, 
-            new ApiResponse.UserStats(totalUsers, verifiedUsers, unverifiedUsers)));
+            new UserStats(totalUsers, verifiedUsers, unverifiedUsers)));
     }
 
     /**

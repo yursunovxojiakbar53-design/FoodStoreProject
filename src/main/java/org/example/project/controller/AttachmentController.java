@@ -32,6 +32,7 @@ public class AttachmentController {
         return ResponseEntity.ok(service.upload(file));
     }
 
+
     @RequirePermission(Perms.MANAGE_ATTACHMENTS)
     @GetMapping("/download/{id}")
     public ResponseEntity<InputStreamResource> download(@PathVariable Integer id) throws IOException {
