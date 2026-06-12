@@ -32,10 +32,10 @@ public class AboutAsController {
     }
     @RequirePermission(Perms.MANAGE_ABOUT)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id){
-        ApiResponse apiResponse = aboutAsService.delete(id);
-        return ResponseEntity.ok(apiResponse);
-    }
+        public ResponseEntity<?> delete(@PathVariable Integer id){
+            ApiResponse apiResponse = aboutAsService.delete(id);
+            return ResponseEntity.ok(apiResponse);
+        }
 
     @GetMapping
     public ResponseEntity<?> list(){
