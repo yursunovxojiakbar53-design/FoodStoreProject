@@ -54,18 +54,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Mavjud qatorlar orasiga qo'shing:
-                        .requestMatchers("/api/filials", "/api/filials/**").permitAll()
-                        .requestMatchers("/about", "/about/**").permitAll()
-                        .requestMatchers("/api/files/view/**").permitAll()
-                        .requestMatchers("/api/v1/search/**").permitAll()
-
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/open/orders/history**").permitAll()
-                        .requestMatchers("/api/v1/open/**").permitAll()
-                        .requestMatchers("/api/v1/categories/**").permitAll()
-                        .requestMatchers("/api/v1/categories/open").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
                         .anyRequest().authenticated()
                 )
 

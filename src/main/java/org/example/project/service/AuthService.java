@@ -50,9 +50,7 @@ public class AuthService {
 
     public ApiResponse login(LoginDto loginDto) {
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
-            );
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
             Users users = usersRepo.findByEmail(loginDto.getEmail()).orElseThrow(() -> new NotFoundException("Invalid credentials"));
             String token = jwtService.generateToken(users);
             return new ApiResponse("User logged in successfully", true,token);
@@ -61,6 +59,7 @@ public class AuthService {
         }
 
     }
+
 
     public ApiResponse verifyEmail(String email, Integer code) {
         Users user = usersRepo.findByEmail(email).orElse(null);
