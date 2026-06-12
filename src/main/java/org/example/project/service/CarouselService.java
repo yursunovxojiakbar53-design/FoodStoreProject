@@ -83,7 +83,7 @@ public class CarouselService {
     }
 
     private CarouselDto toDto(Carousel carousel) {
-        String imageUrl = carousel.getAttachment() != null ? "/api/v1/files/view/" + carousel.getAttachment().getId() : null;
+        String imageUrl = carousel.getAttachment() != null ? "/api/files/view/" + carousel.getAttachment().getId() : null;
 
         return CarouselDto.builder()
                 .id(carousel.getId())

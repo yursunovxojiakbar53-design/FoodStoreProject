@@ -5,6 +5,9 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/foodstore
 spring.datasource.username=postgres
 spring.datasource.password=changeme
 spring.jpa.hibernate.ddl-auto=update
+server.port=8080
+file.upload-dir=uploads
+app.cors.allowed-origins=${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 # Email (Gmail example)
 spring.mail.host=smtp.gmail.com
@@ -14,6 +17,14 @@ spring.mail.username=your-email@example.com
 spring.mail.password=your-app-password
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Telegram Bot
+telegram.bot.token=${TELEGRAM_BOT_TOKEN:}
+telegram.bot.username=${TELEGRAM_BOT_USERNAME:}
+telegram.bot.enabled=${TELEGRAM_BOT_ENABLED:false}
+telegram.bot.admin-chat-ids=${TELEGRAM_ADMIN_CHAT_IDS:}
+telegram.bot.page-size=5
+telegram.bot.backend-base-url=${TELEGRAM_BACKEND_BASE_URL:http://localhost:8080}
 
 # Instructions:
 # 1) Copy this file to src/main/resources/application.properties and fill values for local development.

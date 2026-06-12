@@ -2,6 +2,7 @@ package org.example.project.config;
 
 import lombok.RequiredArgsConstructor;
 import org.example.project.repository.UsersRepo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -27,6 +29,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
+
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -81,9 +86,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // adjust for production
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

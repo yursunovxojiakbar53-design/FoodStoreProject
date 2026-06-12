@@ -159,8 +159,11 @@ public class CartService {
             itemDto.setCartId(cart.getId());
             itemDto.setProductId(item.getProduct().getId());
             itemDto.setProductName(item.getProduct().getName());
+            itemDto.setAttachmentId(item.getProduct().getAttachment() != null ? item.getProduct().getAttachment().getId() : null);
 
-            double price = item.getProduct().getCurrentPrice() > 0 ? item.getProduct().getDiscountPrice() : item.getProduct().getPrice();
+            double price = item.getProduct().getCurrentPrice() > 0
+                    ? item.getProduct().getCurrentPrice()
+                    : (item.getProduct().getDiscountPrice() > 0 ? item.getProduct().getDiscountPrice() : item.getProduct().getPrice());
 
             itemDto.setProductPrice(price);
             itemDto.setQuantity(item.getQuantity());

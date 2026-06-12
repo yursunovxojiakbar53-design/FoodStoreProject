@@ -8,6 +8,7 @@ public class CartItemDto {
     private Integer cartId;
     private Integer productId;
     private String productName;
+    private Integer attachmentId;
     private Double productPrice;
     private Integer quantity;
     private Double lineTotal;
