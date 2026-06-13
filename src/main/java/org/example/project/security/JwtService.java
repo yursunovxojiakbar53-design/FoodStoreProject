@@ -30,17 +30,27 @@ public class JwtService {
     public String generateToken(Users users) {
         return Jwts.builder()
                 .subject(users.getUsername())
-                .claim("permissions", users.getAuthorities()
-                        .stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .toList())
-                // ["ROLE_ADMIN", "PERMISSION_DELETE_USER", "PERMISSION_READ", ...]
+
+                .claim("roles",
+                        users.getAuthorities().stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .filter(a -> a.startsWith("ROLE_"))
+                                .map(a -> a.replace("ROLE_", ""))
+                                .toList()
+                )
+
+                .claim("permissions",
+                        users.getAuthorities().stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .filter(a -> a.startsWith("PERMISSION_"))
+                                .toList()
+                )
+
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(key)
                 .compact();
     }
-
     // Yangi metod qo'shiladi
     public List<String> extractPermissions(String token) {
         return getClaims(token).get("permissions", List.class);

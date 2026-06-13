@@ -24,9 +24,12 @@ public class CategoryService {
 
     public ApiResponse add(CategoryDto dto) {
 
-        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Not found attachment with id " + dto.getAttachmentId()));
+        Attachment attachment = getAttachment(dto.getAttachmentId());
 
         Integer maxOrder = categoryRepo.findMaxOrderId();
+        if (maxOrder == null) {
+            maxOrder = 0;
+        }
         Integer orderId = dto.getOrderId();
 
         if (orderId == null) {
@@ -48,8 +51,7 @@ public class CategoryService {
                 .descriptionUz(dto.getDescriptionUz())
                 .descriptionRu(dto.getDescriptionRu())
                 .descriptionEn(dto.getDescriptionEn())
-                .telegramSticker(dto.getTelegramSticker())
-                .telegramSticker(dto.getTelegramDescription())
+                .telegramSticker(defaultText(dto.getTelegramSticker()))
                 .orderId(orderId)
                 .status(dto.isActive())
                 .attachment(attachment)
@@ -65,7 +67,7 @@ public class CategoryService {
         Category category = categoryRepo.findById(id).orElseThrow(() ->
                                 new NotFoundException("Not found category with id " + id));
 
-        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Not found attachment"));
+        Attachment attachment = getAttachment(dto.getAttachmentId());
 
         category.setNameUz(dto.getNameUz());
         category.setNameRu(dto.getNameRu());
@@ -73,7 +75,7 @@ public class CategoryService {
         category.setDescriptionUz(dto.getDescriptionUz());
         category.setDescriptionRu(dto.getDescriptionRu());
         category.setDescriptionEn(dto.getDescriptionEn());
-        category.setTelegramSticker(dto.getTelegramSticker());
+        category.setTelegramSticker(defaultText(dto.getTelegramSticker()));
         category.setStatus(dto.isActive());
         category.setAttachment(attachment);
 
@@ -138,5 +140,17 @@ public class CategoryService {
     public ApiResponse getAllOpen() {
         List<Category> categories = categoryRepo.findAll();
         return new ApiResponse("OK", true, categories);
+    }
+
+    private Attachment getAttachment(Integer attachmentId) {
+        if (attachmentId == null) {
+            return null;
+        }
+        return attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new NotFoundException("Not found attachment with id " + attachmentId));
+    }
+
+    private String defaultText(String value) {
+        return value == null || value.isBlank() ? "-" : value;
     }
 }

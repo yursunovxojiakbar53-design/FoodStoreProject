@@ -100,7 +100,7 @@ public class AdminOrderController {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
         
-        order.setOrderStatus(OrderStatus.CANCELED);
+        order.setOrderStatus(OrderStatus.CANCELLED);
         if (reason != null) {
             order.setMessage(reason);
         }

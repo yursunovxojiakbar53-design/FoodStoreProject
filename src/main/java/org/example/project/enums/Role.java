@@ -9,6 +9,9 @@ import java.util.Set;
 @Getter
 public enum Role {
 
+
+
+
     ROLE_SUPER_ADMIN(
 
             Permission.MANAGE_USERS,

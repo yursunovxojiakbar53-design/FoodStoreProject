@@ -25,7 +25,7 @@ public class ProductService {
 
     public ApiResponse addProduct(ProductDto dto) {
         Category category = categoryRepo.findById(dto.getCategoryId()).orElseThrow(() -> new NotFoundException("Category not found with id " + dto.getCategoryId()));
-        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Attachment not found with id " + dto.getAttachmentId()));
+        Attachment attachment = getAttachment(dto.getAttachmentId());
 
         Product product = Product.builder()
                         .nameUz(dto.getNameUz())
@@ -35,8 +35,8 @@ public class ProductService {
                         .descriptionRu(dto.getDescriptionRu())
                         .descriptionEng(dto.getDescriptionEn())
                         .price(dto.getPrice())
-                        .discountPrice(dto.getDiscountPrice())
-                        .currentPrice(dto.getCurrentPrice())
+                        .discountPrice(defaultNumber(dto.getDiscountPrice()))
+                        .currentPrice(dto.getCurrentPrice() > 0 ? dto.getCurrentPrice() : dto.getPrice())
                         .stockQuantity(dto.getStockQuantity() != null ? dto.getStockQuantity() : 0)
                         .weight(dto.getWeight())
                         .category(category)
@@ -49,7 +49,7 @@ public class ProductService {
 
     public ApiResponse updateProduct(ProductDto dto, Integer id) {
         Category category = categoryRepo.findById(dto.getCategoryId()).orElseThrow(() -> new NotFoundException("Category not found with id " + dto.getCategoryId()));
-        Attachment attachment = attachmentRepository.findById(dto.getAttachmentId()).orElseThrow(() -> new NotFoundException("Attachment not found with id " + dto.getAttachmentId()));
+        Attachment attachment = getAttachment(dto.getAttachmentId());
         Product product = productRepo.findById(id).orElseThrow(() -> new NotFoundException("Product not found with id " + id));
         product.setNameUz(dto.getNameUz());
         product.setNameRu(dto.getNameRu());
@@ -61,10 +61,10 @@ public class ProductService {
         product.setAttachment(attachment);
         product.setCategory(category);
         product.setWeight(dto.getWeight());
-        product.setCurrentPrice(dto.getCurrentPrice());
+        product.setCurrentPrice(dto.getCurrentPrice() > 0 ? dto.getCurrentPrice() : dto.getPrice());
         product.setStockQuantity(dto.getStockQuantity() != null ? dto.getStockQuantity() : 0);
         product.setAvailable(dto.isAvailable());
-        product.setDiscountPrice(dto.getDiscountPrice());
+        product.setDiscountPrice(defaultNumber(dto.getDiscountPrice()));
         productRepo.save(product);
         return new ApiResponse("Updated ",true,product);
     }
@@ -92,5 +92,17 @@ public class ProductService {
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Mahsulot topilmadi: " + id));
         return new ApiResponse("OK", true, product);
+    }
+
+    private Attachment getAttachment(Integer attachmentId) {
+        if (attachmentId == null) {
+            return null;
+        }
+        return attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new NotFoundException("Attachment not found with id " + attachmentId));
+    }
+
+    private double defaultNumber(Double value) {
+        return value == null ? 0 : value;
     }
 }

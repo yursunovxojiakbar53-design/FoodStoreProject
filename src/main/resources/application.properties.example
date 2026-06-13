@@ -9,14 +9,20 @@ server.port=8080
 file.upload-dir=uploads
 app.cors.allowed-origins=${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
-# Email (Gmail example)
+# Email (Gmail SMTP)
+app.mail.fallback-username=your-email@example.com
+app.mail.fallback-password=your-app-password
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-# Use your email here for testing (or set MAIL_USERNAME and MAIL_PASSWORD as env vars)
-spring.mail.username=your-email@example.com
-spring.mail.password=your-app-password
+spring.mail.username=${MAIL_USERNAME:${app.mail.fallback-username}}
+spring.mail.password=${MAIL_PASSWORD:${app.mail.fallback-password}}
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+spring.mail.properties.mail.smtp.connectiontimeout=5000
+spring.mail.properties.mail.smtp.timeout=5000
+spring.mail.properties.mail.smtp.writetimeout=5000
+spring.mail.default-encoding=UTF-8
 
 # Telegram Bot
 telegram.bot.token=${TELEGRAM_BOT_TOKEN:}

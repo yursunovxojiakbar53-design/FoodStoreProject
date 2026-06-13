@@ -21,6 +21,7 @@ public class UserRole extends AbstractEntity implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return role.name();
+        String roleName = role.name();
+        return roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
     }
 }
