@@ -41,7 +41,7 @@ public class AuthService {
                 .name(users.getFirstName())
                 .enabled(false)
                 .emailCode(emailCode)
-                .role(userRoleRepo.findByRole(Role.USER))
+                .role(userRoleRepo.findByRole(Role.ROLE_USER))
                 .build();
         usersRepo.save(user);
         emailService.sendVerificationEmail(users.getEmail(), emailCode);

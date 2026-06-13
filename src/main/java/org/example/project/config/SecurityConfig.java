@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/v1/open/orders/history**").permitAll()
+                        .requestMatchers("/api/v1/open/**").permitAll()
+                        .requestMatchers("/api/v1/categories/open").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/admin/**", "/admin/**")
                         .hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_ADMIN")
@@ -101,4 +103,5 @@ public class SecurityConfig {
 
         return configuration.getAuthenticationManager();
     }
+
 }

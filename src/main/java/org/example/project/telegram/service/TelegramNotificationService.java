@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TelegramNotificationService {
@@ -33,26 +35,28 @@ public class TelegramNotificationService {
         );
     }
 
-    public void notifyUser(Long chatId, org.example.project.telegram.enums.BotLanguage lang, OrderStatus status, int orderId) {
+    public void notifyUser(Long chatId, BotLanguage lang, OrderStatus status, int orderId) {
         String emoji = switch (status) {
+            case PROCESSING -> "⏳";
             case NEW, PENDING -> "🆕";
             case CONFIRMED -> "✅";
             case ON_THE_WAY -> "🚚";
             case DELIVERED -> "📦";
             case CANCELED -> "❌";
         };
+
         String text = emoji + " " + messageService.get("notification.status", lang) + " #" + orderId + " → " + status.name();
         send(chatId, text);
     }
 
-    public void notifyAdmins(java.util.List<Long> adminChatIds, String text) {
+    public void notifyAdmins(List<Long> adminChatIds, String text) {
         for (Long chatId : adminChatIds) {
             send(chatId, text);
         }
     }
 
-    public void notifyAdminsWithPhoto(java.util.List<Long> adminChatIds, String photoFileId,
-                                       String caption, InlineKeyboardMarkup keyboard) {
+    public void notifyAdminsWithPhoto(List<Long> adminChatIds, String photoFileId,
+                                      String caption, InlineKeyboardMarkup keyboard) {
         for (Long chatId : adminChatIds) {
             messenger.sendPhotoById(chatId, photoFileId, caption, keyboard);
         }

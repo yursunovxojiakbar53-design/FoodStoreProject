@@ -35,7 +35,6 @@ public class JwtService {
                         users.getAuthorities().stream()
                                 .map(GrantedAuthority::getAuthority)
                                 .filter(a -> a.startsWith("ROLE_"))
-                                .map(a -> a.replace("ROLE_", ""))
                                 .toList()
                 )
 
@@ -59,7 +58,19 @@ public class JwtService {
     public String extractUsername(String token) {
         return getClaims(token).getSubject();
     }
+    public List<String> extractRoles(String token) {
+        Claims claims = getClaims(token);
 
+        Object roles = claims.get("roles");
+
+        if (roles instanceof List<?> roleList) {
+            return roleList.stream()
+                    .map(String::valueOf)
+                    .toList();
+        }
+
+        return List.of();
+    }
 
     public boolean isTokenValid(String token) {
         try {

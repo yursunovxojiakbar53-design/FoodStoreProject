@@ -1,6 +1,7 @@
 package org.example.project.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.project.dto.AdminOrderDto;
 import org.example.project.entity.Order;
 import org.example.project.enums.OrderStatus;
 import org.example.project.extra.ApiResponse;
@@ -38,9 +39,17 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "10") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orders = orderRepo.findAll(pageable);
+        Page<AdminOrderDto> dto =
+                orderRepo.findAll(pageable)
+                        .map(o -> new AdminOrderDto(
+                                o.getId(),
+                                o.getUser().getName(),
+                                o.getPhoneNumber(),
+                                o.getOrderStatus(),
+                                o.getAddress().getTitle()
+                        ));
         
-        return ResponseEntity.ok(new ApiResponse("Orders retrieved successfully", true, orders));
+        return ResponseEntity.ok(new ApiResponse("Orders retrieved successfully", true, dto));
     }
 
     /**
@@ -100,7 +109,7 @@ public class AdminOrderController {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
         
-        order.setOrderStatus(OrderStatus.CANCELLED);
+        order.setOrderStatus(OrderStatus.CANCELED);
         if (reason != null) {
             order.setMessage(reason);
         }

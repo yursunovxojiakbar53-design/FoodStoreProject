@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -45,9 +46,10 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(token);
 
         // ← BU O'ZGARDI: role emas, permissions o'qiymiz
-        List<SimpleGrantedAuthority> authorities = jwtService.extractPermissions(token)
-                .stream()
-                .map(SimpleGrantedAuthority::new)
+        List<SimpleGrantedAuthority> authorities = Stream.concat(
+                        jwtService.extractRoles(token).stream(),
+                        jwtService.extractPermissions(token).stream()
+                ).map(SimpleGrantedAuthority::new)
                 .toList();
 
         UsernamePasswordAuthenticationToken authentication =
