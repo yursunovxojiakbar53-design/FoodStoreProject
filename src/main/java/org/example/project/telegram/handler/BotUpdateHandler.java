@@ -71,6 +71,7 @@ public class BotUpdateHandler {
         }
     }
 
+
     private void handleMessage(Update update) {
         Message message = update.getMessage();
         Long chatId = message.getChatId();
