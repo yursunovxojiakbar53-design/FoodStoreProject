@@ -14,12 +14,15 @@ import org.example.project.telegram.enums.BotLanguage;
 import org.example.project.telegram.enums.BotState;
 import org.example.project.telegram.repository.TelegramSessionRepository;
 import org.example.project.telegram.repository.TelegramUserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,8 +40,16 @@ public class TelegramUserService {
 
     @Transactional
     public TelegramUser getOrCreate(User tgUser) {
-        return telegramUserRepository.findByChatId(tgUser.getId())
+        TelegramUser user = telegramUserRepository.findByChatId(tgUser.getId())
                 .orElseGet(() -> createNew(tgUser));
+        // Admin holatini config (telegram.bot.admin-chat-ids) bilan sinxronlash.
+        // Shu sabab config'ga chat ID qo'shilsa, mavjud foydalanuvchi ham admin bo'ladi.
+        boolean shouldBeAdmin = properties.getAdminChatIdList().contains(tgUser.getId());
+        if (user.isAdmin() != shouldBeAdmin) {
+            user.setAdmin(shouldBeAdmin);
+            user = telegramUserRepository.save(user);
+        }
+        return user;
     }
 
     private TelegramUser createNew(User tgUser) {
@@ -93,6 +104,22 @@ public class TelegramUserService {
     @Transactional
     public TelegramUser save(TelegramUser user) {
         return telegramUserRepository.save(user);
+    }
+
+    // Admin panel: barcha bot foydalanuvchilari (broadcast uchun)
+    public List<TelegramUser> findAll() {
+        return telegramUserRepository.findAll();
+    }
+
+    public long countUsers() {
+        return telegramUserRepository.count();
+    }
+
+    // Oxirgi faol foydalanuvchilar
+    public List<TelegramUser> recentUsers(int limit) {
+        return telegramUserRepository
+                .findAll(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "updatedAt")))
+                .getContent();
     }
 
     @Transactional

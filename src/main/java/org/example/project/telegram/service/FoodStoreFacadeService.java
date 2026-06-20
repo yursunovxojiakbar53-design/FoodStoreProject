@@ -37,6 +37,7 @@ public class FoodStoreFacadeService {
     private final OrderService orderService;
     private final AddressService addressService;
     private final CouponService couponService;
+    private final CouponRepo couponRepo;
     private final AboutAsRepo aboutAsRepo;
     private final FilialRepo filialRepo;
     private final OrderRepo orderRepo;
@@ -199,6 +200,54 @@ public class FoodStoreFacadeService {
 
     public Optional<Order> getOrderById(int orderId) {
         return orderRepo.findById(orderId);
+    }
+
+    // ===== Admin: mahsulot boshqaruvi =====
+    public Page<Product> getAllProductsAdmin(int page) {
+        return productRepo.findAll(PageRequest.of(page, properties.getPageSize()));
+    }
+
+    public Product toggleProductAvailable(int id) {
+        Product p = productRepo.findById(id).orElseThrow();
+        p.setAvailable(!p.isAvailable());
+        return productRepo.save(p);
+    }
+
+    public Product createProduct(String nameUz, double price, int categoryId) {
+        Category category = categoryRepo.findById(categoryId).orElseThrow();
+        Product p = Product.builder()
+                .nameUz(nameUz)
+                .price(price)
+                .currentPrice(price)
+                .weight(0)
+                .category(category)
+                .isAvailable(true)
+                .stockQuantity(100)
+                .build();
+        return productRepo.save(p);
+    }
+
+    // ===== Admin: kategoriya boshqaruvi =====
+    public List<Category> getAllCategoriesAdmin() {
+        return categoryRepo.findAll();
+    }
+
+    public Category createCategory(String nameUz) {
+        int nextOrder = (int) categoryRepo.count() + 1;
+        Category c = Category.builder()
+                .nameUz(nameUz)
+                .orderId(nextOrder)
+                .telegramSticker("-")
+                .status(true)
+                .build();
+        return categoryRepo.save(c);
+    }
+
+    // ===== Admin: kupon boshqaruvi =====
+    public Coupon toggleCoupon(int id) {
+        Coupon c = couponRepo.findById(id).orElseThrow();
+        c.setActive(!c.isActive());
+        return couponRepo.save(c);
     }
 
     public java.io.File getProductImageFile(Product product) {

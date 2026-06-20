@@ -12,7 +12,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>foodstore</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>Food-store-1.0.0</version>
     <name>FoodStore</name>
     <description>FoodStore backend (Spring Boot 4.0)</description>
 

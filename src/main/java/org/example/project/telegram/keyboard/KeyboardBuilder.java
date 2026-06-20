@@ -1,5 +1,6 @@
 package org.example.project.telegram.keyboard;
 
+import org.example.project.entity.Category;
 import org.example.project.entity.Filial;
 import org.example.project.telegram.callback.CallbackDataFactory;
 import org.example.project.telegram.enums.BotLanguage;
@@ -230,9 +231,37 @@ public class KeyboardBuilder {
     public InlineKeyboardMarkup adminMenu(BotLanguage lang) {
         return markup(
                 row(btn("📋 Buyurtmalar", CallbackDataFactory.build(CallbackAction.ADMIN_ORDERS, "0"))),
-                row(btn("📊 Statistika", CallbackDataFactory.build(CallbackAction.ADMIN_STATS))),
+                row(
+                        btn("🍽 Mahsulotlar", CallbackDataFactory.build(CallbackAction.ADMIN_PRODUCTS, "0")),
+                        btn("📂 Kategoriyalar", CallbackDataFactory.build(CallbackAction.ADMIN_CATEGORIES))
+                ),
+                row(btn("🎁 Kuponlar", CallbackDataFactory.build(CallbackAction.ADMIN_COUPONS))),
+                row(
+                        btn("📊 Statistika", CallbackDataFactory.build(CallbackAction.ADMIN_STATS)),
+                        btn("👥 Foydalanuvchilar", CallbackDataFactory.build(CallbackAction.ADMIN_USERS))
+                ),
+                row(btn("📢 Xabar yuborish (Broadcast)", CallbackDataFactory.build(CallbackAction.ADMIN_BROADCAST))),
                 row(btn(messages.get("btn.home", lang), CallbackDataFactory.build(CallbackAction.MENU)))
         );
+    }
+
+    // Yangi mahsulotga kategoriya tanlash
+    public InlineKeyboardMarkup adminCategoryPick(BotLanguage lang, List<Category> categories) {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        for (Category c : categories) {
+            rows.add(row(btn("📂 " + c.getNameUz(),
+                    CallbackDataFactory.build(CallbackAction.ADMIN_PROD_CAT, String.valueOf(c.getId())))));
+        }
+        rows.addAll(adminBack(lang).getKeyboard());
+        return markup(rows);
+    }
+
+    // Admin bo'limlaridan orqaga qaytish
+    public InlineKeyboardMarkup adminBack(BotLanguage lang) {
+        return markup(row(
+                btn("⬅️ Admin panel", CallbackDataFactory.build(CallbackAction.ADMIN)),
+                btn(messages.get("btn.home", lang), CallbackDataFactory.build(CallbackAction.MENU))
+        ));
     }
 
     public InlineKeyboardMarkup listButtons(BotLanguage lang, CallbackAction action, List<ItemButton> items, int page, int totalPages) {

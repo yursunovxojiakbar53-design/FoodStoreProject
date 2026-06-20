@@ -30,7 +30,7 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    @Value("${app.cors.allowed-origins:http://172.20.10.3:3000/}")
     private String allowedOrigins;
 
     @Bean
@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/open/orders/history**").permitAll()
                         .requestMatchers("/api/v1/open/**").permitAll()
                         .requestMatchers("/api/v1/categories/open").permitAll()
+                        .requestMatchers("/api/v1/open/products**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/admin/**", "/admin/**")
                         .hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_ADMIN")
@@ -82,12 +83,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(origin -> !origin.isEmpty())
-                .toList();
-        configuration.setAllowedOrigins(origins);
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        // Har qanday localhost porti uchun ruxsat (3000, 3001, ...)
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);

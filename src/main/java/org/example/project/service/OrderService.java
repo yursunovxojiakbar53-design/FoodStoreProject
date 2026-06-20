@@ -46,6 +46,11 @@ public class OrderService {
 
         Users user = getUser(authentication);
 
+        // Bloklangan foydalanuvchi buyurtma bera olmaydi
+        if (!user.isEnabled()) {
+            return new ApiResponse("Hisobingiz bloklangan. Buyurtma bera olmaysiz.", false, null);
+        }
+
         if (dto.getItems() == null || dto.getItems().isEmpty()) {
             return new ApiResponse("Buyurtmada mahsulot yo'q", false, null);
         }
@@ -187,6 +192,7 @@ public class OrderService {
         return new ApiResponse("OK", true, dto);
     }
 
+    @Transactional
     public ApiResponse changeStatus(Integer id, OrderStatus status) {
 
         Order order = orderRepo.findById(id).orElseThrow(() -> new NotFoundException("Buyurtma topilmadi: " + id));
@@ -194,15 +200,22 @@ public class OrderService {
         order.setOrderStatus(status);
         orderRepo.save(order);
 
-        emailService.sendOrderStatusUpdate(
-                order.getUser().getUsername(),
-                order.getId(),
-                status.name()
-        );
+        // Email yuborish ixtiyoriy — yuborilmasa ham status o'zgaradi
+        // (telegram foydalanuvchilarda email soxta: tg_<id>@foodstore.bot)
+        try {
+            emailService.sendOrderStatusUpdate(
+                    order.getUser().getUsername(),
+                    order.getId(),
+                    status.name()
+            );
+        } catch (Exception ignored) {
+        }
 
         OrderResponseDto dto = toDto(order);
         return new ApiResponse("Status yangilandi: " + status, true, dto);
     }
+
+
     @Transactional
     public ApiResponse cancelOrder(Integer id, Authentication auth) {
         Users user = getUser(auth);

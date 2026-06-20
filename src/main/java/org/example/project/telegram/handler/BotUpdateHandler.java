@@ -136,6 +136,17 @@ public class BotUpdateHandler {
                     sessionService.setPhoneNumber(user, text);
                     askDeliveryType(user);
                 }
+                case ADMIN_BROADCAST_INPUT -> doBroadcast(user, chatId, text);
+                case ADMIN_CAT_ADD_NAME -> finishAddCategory(user, chatId, text);
+                case ADMIN_PROD_ADD_NAME -> {
+                    TelegramSession s = sessionService.getSession(user);
+                    s.setDraftMessage(text);
+                    s.setState(BotState.ADMIN_PROD_ADD_PRICE);
+                    user.setCurrentState(BotState.ADMIN_PROD_ADD_PRICE);
+                    sessionService.save(s);
+                    messenger.sendText(chatId, "2️⃣ Narxini yuboring (faqat raqam, masalan: <b>45000</b>):");
+                }
+                case ADMIN_PROD_ADD_PRICE -> handleProductPriceInput(user, chatId, text);
                 case CHECKOUT_COUPON -> {
                     List<Coupon> coupons = store.getCoupons();
                     Optional<Coupon> found = coupons.stream()
@@ -303,6 +314,16 @@ public class BotUpdateHandler {
                 case ADMIN_REJECT -> adminChangeStatus(user, cb.paramAsInt(0, 0), OrderStatus.CANCELED, chatId);
                 case ADMIN_STATUS -> adminChangeStatus(user, cb.paramAsInt(0, 0), OrderStatus.valueOf(cb.param(1)), chatId);
                 case ADMIN_STATS -> showAdminStats(user, chatId, messageId);
+                case ADMIN_USERS -> showAdminUsers(user, chatId, messageId);
+                case ADMIN_BROADCAST -> startBroadcast(user, chatId, messageId);
+                case ADMIN_PRODUCTS -> showAdminProducts(user, cb.paramAsInt(0, 0), chatId, messageId);
+                case ADMIN_PRODUCT_TOGGLE -> toggleProduct(user, cb.paramAsInt(0, 0), cb.paramAsInt(1, 0), chatId, messageId);
+                case ADMIN_PROD_ADD -> startAddProduct(user, chatId, messageId);
+                case ADMIN_PROD_CAT -> finishAddProduct(user, cb.paramAsInt(0, 0), chatId, messageId);
+                case ADMIN_CATEGORIES -> showAdminCategories(user, chatId, messageId);
+                case ADMIN_CAT_ADD -> startAddCategory(user, chatId, messageId);
+                case ADMIN_COUPONS -> showAdminCoupons(user, chatId, messageId);
+                case ADMIN_COUPON_TOGGLE -> toggleCoupon(user, cb.paramAsInt(0, 0), chatId, messageId);
                 case PAGE -> handlePage(user, session, cb, chatId, messageId);
                 default -> { }
             }
@@ -319,6 +340,7 @@ public class BotUpdateHandler {
             case CATEGORIES -> showCategories(user, session, page, chatId, messageId);
             case CATEGORY -> showCategoryProducts(user, session, session.getCategoryId(), page, chatId, messageId);
             case ADMIN_ORDERS -> showAdminOrders(user, page, chatId, messageId);
+            case ADMIN_PRODUCTS -> showAdminProducts(user, page, chatId, messageId);
             default -> showProducts(user, session, page, chatId, messageId);
         }
     }
@@ -964,6 +986,215 @@ public class BotUpdateHandler {
         long delivered = store.countOrdersByStatus(OrderStatus.DELIVERED);
         String text = "📊 <b>Statistika</b>\n\nJami: " + total + "\nTasdiqlangan: " + confirmed + "\nYetkazilgan: " + delivered;
         messenger.editText(chatId, messageId, text, keyboard.adminMenu(user.getLanguage()));
+    }
+
+    // 👥 Bot foydalanuvchilari: soni + oxirgi faollar
+    private void showAdminUsers(TelegramUser user, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        long total = userService.countUsers();
+        List<TelegramUser> recent = userService.recentUsers(10);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("👥 <b>Bot foydalanuvchilari</b>\n\n");
+        sb.append("Jami: <b>").append(total).append("</b> ta\n\n");
+        sb.append("🕒 <b>Oxirgi faol foydalanuvchilar:</b>\n");
+        int i = 1;
+        for (TelegramUser u : recent) {
+            String name = u.getFirstName() != null ? u.getFirstName() : "—";
+            String uname = u.getUsername() != null ? " (@" + u.getUsername() + ")" : "";
+            sb.append(i++).append(". ").append(escapeHtml(name)).append(escapeHtml(uname)).append("\n");
+        }
+        messenger.editText(chatId, messageId, sb.toString(), keyboard.adminBack(user.getLanguage()));
+    }
+
+    // 📢 Broadcast: admin'dan xabar matnini so'rash
+    private void startBroadcast(TelegramUser user, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        sessionService.updateState(user, BotState.ADMIN_BROADCAST_INPUT);
+        messenger.editText(chatId, messageId,
+                "📢 <b>Broadcast xabar</b>\n\nBarcha foydalanuvchilarga yubormoqchi bo'lgan xabaringizni yozib yuboring.\n\nBekor qilish uchun: /cancel",
+                keyboard.adminBack(user.getLanguage()));
+    }
+
+    // 🍽 Mahsulotlar: aktiv/noaktiv qilish
+    private void showAdminProducts(TelegramUser user, int page, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        Page<Product> products = store.getAllProductsAdmin(page);
+        if (products.isEmpty()) {
+            messenger.editText(chatId, messageId, "📦 Mahsulotlar yo'q", keyboard.adminBack(user.getLanguage()));
+            return;
+        }
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        rows.add(List.of(inlineBtn("➕ Mahsulot qo'shish", CallbackDataFactory.build(CallbackAction.ADMIN_PROD_ADD))));
+        for (Product p : products) {
+            String status = p.isAvailable() ? "✅" : "❌";
+            double price = p.getDiscountPrice() > 0 ? p.getDiscountPrice() : p.getPrice();
+            String label = status + " " + productMapper.localizedName(p, user.getLanguage())
+                    + " — " + String.format("%,.0f", price);
+            rows.add(List.of(inlineBtn(label,
+                    CallbackDataFactory.build(CallbackAction.ADMIN_PRODUCT_TOGGLE, String.valueOf(p.getId()), String.valueOf(page)))));
+        }
+        rows.addAll(keyboard.pagination(user.getLanguage(), CallbackAction.ADMIN_PRODUCTS, page, products.getTotalPages()).getKeyboard());
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
+        messenger.editText(chatId, messageId,
+                "🍽 <b>Mahsulotlar</b>\nTugmani bosib aktiv/noaktiv qiling.\n✅ = aktiv | ❌ = noaktiv", markup);
+    }
+
+    private void toggleProduct(TelegramUser user, int productId, int page, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        store.toggleProductAvailable(productId);
+        showAdminProducts(user, page, chatId, messageId);
+    }
+
+    // 🎁 Kuponlar: aktiv/noaktiv qilish
+    private void showAdminCoupons(TelegramUser user, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        List<Coupon> coupons = store.getCoupons();
+        if (coupons == null || coupons.isEmpty()) {
+            messenger.editText(chatId, messageId, "🎁 Kuponlar yo'q", keyboard.adminBack(user.getLanguage()));
+            return;
+        }
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        for (Coupon c : coupons) {
+            String status = c.isActive() ? "✅" : "❌";
+            String label = status + " " + c.getCode() + " — " + (int) c.getDiscountPercent() + "%";
+            rows.add(List.of(inlineBtn(label,
+                    CallbackDataFactory.build(CallbackAction.ADMIN_COUPON_TOGGLE, String.valueOf(c.getId())))));
+        }
+        rows.addAll(keyboard.adminBack(user.getLanguage()).getKeyboard());
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
+        messenger.editText(chatId, messageId,
+                "🎁 <b>Kuponlar</b>\nTugmani bosib aktiv/noaktiv qiling.\n✅ = aktiv | ❌ = noaktiv", markup);
+    }
+
+    private void toggleCoupon(TelegramUser user, int couponId, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        store.toggleCoupon(couponId);
+        showAdminCoupons(user, chatId, messageId);
+    }
+
+    // 📂 Kategoriyalar ro'yxati + qo'shish
+    private void showAdminCategories(TelegramUser user, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        List<Category> cats = store.getAllCategoriesAdmin();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        rows.add(List.of(inlineBtn("➕ Kategoriya qo'shish", CallbackDataFactory.build(CallbackAction.ADMIN_CAT_ADD))));
+        for (Category c : cats) {
+            rows.add(List.of(inlineBtn("📂 " + c.getNameUz(), CallbackDataFactory.build(CallbackAction.NOOP))));
+        }
+        rows.addAll(keyboard.adminBack(user.getLanguage()).getKeyboard());
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
+        messenger.editText(chatId, messageId, "📂 <b>Kategoriyalar</b> (" + cats.size() + " ta)", markup);
+    }
+
+    // 📂 Kategoriya qo'shish: nom so'rash
+    private void startAddCategory(TelegramUser user, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        sessionService.updateState(user, BotState.ADMIN_CAT_ADD_NAME);
+        messenger.editText(chatId, messageId,
+                "📂 <b>Yangi kategoriya</b>\n\nKategoriya nomini yuboring:\n\nBekor qilish: /cancel",
+                keyboard.adminBack(user.getLanguage()));
+    }
+
+    private void finishAddCategory(TelegramUser user, Long chatId, String name) {
+        if (!user.isAdmin()) return;
+        if (name == null || name.isBlank()) {
+            messenger.sendText(chatId, "❌ Nom bo'sh. Qaytadan yuboring:");
+            return;
+        }
+        Category created = store.createCategory(name.trim());
+        sessionService.resetToMain(user);
+        messenger.sendText(chatId,
+                "✅ Kategoriya qo'shildi: <b>" + escapeHtml(created.getNameUz()) + "</b>",
+                keyboard.adminBack(user.getLanguage()));
+    }
+
+    // 🍽 Mahsulot qo'shish: 1) nom
+    private void startAddProduct(TelegramUser user, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        TelegramSession s = sessionService.getSession(user);
+        s.setDraftMessage(null);
+        s.setCouponCode(null);
+        s.setCategoryId(null);
+        s.setState(BotState.ADMIN_PROD_ADD_NAME);
+        user.setCurrentState(BotState.ADMIN_PROD_ADD_NAME);
+        sessionService.save(s);
+        messenger.editText(chatId, messageId,
+                "🍽 <b>Yangi mahsulot</b>\n\n1️⃣ Mahsulot nomini yuboring:\n\nBekor qilish: /cancel",
+                keyboard.adminBack(user.getLanguage()));
+    }
+
+    // 🍽 Mahsulot qo'shish: 2) narx
+    private void handleProductPriceInput(TelegramUser user, Long chatId, String text) {
+        if (!user.isAdmin()) return;
+        double price;
+        try {
+            price = Double.parseDouble(text.trim().replace(" ", "").replace(",", "."));
+        } catch (NumberFormatException e) {
+            messenger.sendText(chatId, "❌ Noto'g'ri narx. Faqat raqam yuboring (masalan: 45000):");
+            return;
+        }
+        TelegramSession s = sessionService.getSession(user);
+        s.setCouponCode(String.valueOf(price));
+        s.setState(BotState.ADMIN_PROD_ADD_CATEGORY);
+        user.setCurrentState(BotState.ADMIN_PROD_ADD_CATEGORY);
+        sessionService.save(s);
+
+        List<Category> cats = store.getAllCategoriesAdmin();
+        if (cats.isEmpty()) {
+            sessionService.resetToMain(user);
+            messenger.sendText(chatId, "⚠️ Avval kategoriya qo'shing — kategoriyasiz mahsulot bo'lmaydi.",
+                    keyboard.adminBack(user.getLanguage()));
+            return;
+        }
+        messenger.sendText(chatId, "3️⃣ Kategoriyani tanlang:", keyboard.adminCategoryPick(user.getLanguage(), cats));
+    }
+
+    // 🍽 Mahsulot qo'shish: 3) kategoriya tanlandi -> saqlash
+    private void finishAddProduct(TelegramUser user, int categoryId, Long chatId, Integer messageId) {
+        if (!user.isAdmin()) return;
+        TelegramSession s = sessionService.getSession(user);
+        String name = s.getDraftMessage();
+        double price = 0;
+        try {
+            price = Double.parseDouble(s.getCouponCode());
+        } catch (Exception ignored) {
+        }
+        if (name == null || name.isBlank()) {
+            sessionService.resetToMain(user);
+            messenger.editText(chatId, messageId, "❌ Xatolik. Qaytadan urinib ko'ring.", keyboard.adminBack(user.getLanguage()));
+            return;
+        }
+        Product created = store.createProduct(name.trim(), price, categoryId);
+        sessionService.resetToMain(user);
+        messenger.editText(chatId, messageId,
+                "✅ <b>Mahsulot qo'shildi!</b>\n\n🍽 " + escapeHtml(created.getNameUz())
+                        + "\n💰 " + String.format("%,.0f so'm", price),
+                keyboard.adminBack(user.getLanguage()));
+    }
+
+    // 📢 Broadcast: xabarni barcha foydalanuvchilarga yuborish
+    private void doBroadcast(TelegramUser user, Long chatId, String text) {
+        if (!user.isAdmin()) return;
+        List<TelegramUser> all = userService.findAll();
+        String body = "📢 <b>E'lon</b>\n\n" + escapeHtml(text);
+        int sent = 0;
+        int failed = 0;
+        for (TelegramUser target : all) {
+            try {
+                messenger.sendText(target.getChatId(), body);
+                sent++;
+            } catch (Exception e) {
+                failed++; // foydalanuvchi botni bloklagan bo'lishi mumkin
+            }
+        }
+        sessionService.resetToMain(user);
+        messenger.sendText(chatId,
+                "✅ <b>Broadcast yakunlandi!</b>\n\n📨 Yuborildi: <b>" + sent + "</b>\n❌ Yuborilmadi: <b>" + failed + "</b>",
+                keyboard.adminBack(user.getLanguage()));
     }
 
     private Long resolveChatId(Update update) {
